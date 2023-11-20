@@ -40,6 +40,8 @@ import time
 import threading
 import os
 import string
+from pathlib import Path
+import rospkg
 
 import capture_executive
 from capture_executive.config_manager import ConfigManager
@@ -313,7 +315,12 @@ if __name__=='__main__':
     system = rospy.myargv()[3]
 
     try:
-        robot_description = rospy.get_param('robot_description')
+        # robot_description = rospy.get_param('robot_description')
+        pkg_path = Path(rospkg.RosPack().get_path("calibration_launch")).expanduser()
+        file_path = pkg_path / "temp_urdf/modified.xml"
+        with file_path.open(mode = "r") as file:
+            file_content = file.read()
+        robot_description = file_content
     except:
         rospy.logfatal('robot_description not set, exiting')
         sys.exit(-1)
