@@ -365,8 +365,8 @@ if __name__=='__main__':
                 print()
                 print((sample_options[step]["prompt"]))
                 print("Press <enter> to continue, type N to exit this step")
-                resp = eval(input(">>>"))
-                if string.upper(resp) == "N":
+                resp = input(">>>")
+                if resp.upper() == "N":
                     print((sample_options[step]["finish"]))
                     keep_collecting = False
                 else:

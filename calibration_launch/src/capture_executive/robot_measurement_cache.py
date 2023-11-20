@@ -31,6 +31,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import functools
 import roslib; roslib.load_manifest('calibration_launch')
 import sys
 
@@ -76,21 +77,24 @@ class RobotMeasurementCache:
     def add_cam_measurement(self, cam_id, m):
         cur_cache = self._cam_caches[cam_id]
         cur_cache.append( m )
-        cur_cache.sort(stamped_cmp)
+        # cur_cache.sort(stamped_cmp)
+        cur_cache = sorted(cur_cache, key=lambda x: x.header.stamp)
         while len(cur_cache) > self._cam_sizes[cam_id]:
             cur_cache.pop(0)
 
     def add_chain_measurement(self, chain_id, m):
         cur_cache = self._chain_caches[chain_id]
         cur_cache.append( m )
-        cur_cache.sort(stamped_cmp)
+        cur_cache = sorted(cur_cache, key=lambda x: x.header.stamp) 
+        # cur_cache.sort(stamped_cmp)
         while len(cur_cache) > self._chain_sizes[chain_id]:
             cur_cache.pop(0)
 
     def add_laser_measurement(self, laser_id, m, interval_start, interval_end):
         cur_cache = self._laser_caches[laser_id]
         cur_cache.append( [m, interval_start, interval_end] )
-        cur_cache.sort(laser_cmp)
+        # cur_cache.sort(laser_cmp)
+        cur_cache = sorted(cur_cache, key=lambda x: x[0].header.stamp)
         while len(cur_cache) > self._laser_sizes[laser_id]:
             cur_cache.pop(0)
 
