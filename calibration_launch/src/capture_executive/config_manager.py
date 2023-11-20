@@ -52,28 +52,28 @@ class ConfigManager:
         # Set up Cameras
         rospy.logdebug("Constructing Cameras:")
         self._cam_managers = dict()
-        for name in cam_config.keys():
+        for name in list(cam_config.keys()):
             rospy.logdebug("  Constructing CamID [%s]" % name)
             self._cam_managers[name] = CameraConfigManager(name, cam_config[name])
 
         # Set up Chains
         rospy.logdebug("Constructing Chains:")
         self._chain_managers = dict()
-        for name in chain_config.keys():
+        for name in list(chain_config.keys()):
             rospy.logdebug("  Constructing ChainID [%s]" % name)
             self._chain_managers[name] = ChainConfigManager(name, chain_config[name])
 
         # Set up lasers
         rospy.logdebug("Constructing Lasers:")
         self._laser_managers = dict()
-        for laser_id in laser_config.keys():
+        for laser_id in list(laser_config.keys()):
             rospy.logdebug("  Constructing LaserID [%s]" % laser_id)
             self._laser_managers[laser_id] = LaserConfigManager(laser_id, laser_config[laser_id])
 
         # Set up Controllers
         rospy.logdebug("Constructing Controllers:")
         self._controller_managers = dict()
-        for controller_id in controller_config.keys():
+        for controller_id in list(controller_config.keys()):
             rospy.logdebug("  Constructing ControllerID [%s]" % controller_id)
             self._controller_managers[controller_id] = ControllerCmdManager(controller_id, controller_config[controller_id])
 

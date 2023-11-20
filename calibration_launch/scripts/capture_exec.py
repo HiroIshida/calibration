@@ -70,31 +70,31 @@ class CaptureExecutive:
         self.interval_status = None
 
         # parse urdf and get list of links
-        links = URDF().parse(robot_desc).link_map.keys()
+        links = list(URDF().parse(robot_desc).link_map.keys())
 
         # load system config
         system = yaml.safe_load(open(system))
         
         # remove cams that are not on urdf
-        for cam in self.cam_config.keys():
+        for cam in list(self.cam_config.keys()):
             try:
                 link = system['sensors']['rectified_cams'][cam]['frame_id']
                 if not link in links:
-                    print 'URDF does not contain link [%s]. Removing camera [%s]' % (link, cam)
+                    print(('URDF does not contain link [%s]. Removing camera [%s]' % (link, cam)))
                     del self.cam_config[cam]
             except:
-                print 'System description does not contain camera [%s]' % cam
+                print(('System description does not contain camera [%s]' % cam))
                 del self.cam_config[cam]
 
         # remove arms that are not on urdf
-        for chain in self.chain_config.keys():
+        for chain in list(self.chain_config.keys()):
             try:
                 link = system['sensors']['chains'][chain]['tip']
                 if not link in links:
-                    print 'URDF does not contain link [%s]. Removing chain [%s]' % (link, chain)
+                    print(('URDF does not contain link [%s]. Removing chain [%s]' % (link, chain)))
                     del self.chain_config[chain]
             except:
-                print 'System description does not contain chain [%s]' % chain
+                print(('System description does not contain chain [%s]' % chain))
                 del self.chain_config[chain]
 
         self.cache = RobotMeasurementCache()
@@ -110,9 +110,9 @@ class CaptureExecutive:
                                             self.controller_config)
 
         # Construct a manager for each sensor stream (Don't enable any of them)
-        self.cam_managers  = [ (cam_id,   CamManager(  cam_id,   self.add_cam_measurement) )   for cam_id   in self.cam_config.keys() ]
-        self.chain_managers = [ (chain_id, ChainManager(chain_id, self.add_chain_measurement) ) for chain_id in self.chain_config.keys() ]
-        self.laser_managers = [ (laser_id, LaserManager(laser_id, self.add_laser_measurement) ) for laser_id in self.laser_config.keys() ]
+        self.cam_managers  = [ (cam_id,   CamManager(  cam_id,   self.add_cam_measurement) )   for cam_id   in list(self.cam_config.keys()) ]
+        self.chain_managers = [ (chain_id, ChainManager(chain_id, self.add_chain_measurement) ) for chain_id in list(self.chain_config.keys()) ]
+        self.laser_managers = [ (laser_id, LaserManager(laser_id, self.add_laser_measurement) ) for laser_id in list(self.laser_config.keys()) ]
 
         # Subscribe to topic containing stable intervals
         self.request_interval_sub = rospy.Subscriber("intersected_interval", calibration_msgs.msg.Interval, self.request_callback)
@@ -143,7 +143,7 @@ class CaptureExecutive:
         next_configuration["camera_measurements"] = []
 
         for (i, cam) in enumerate(camera_measurements):
-            if self.cam_config.has_key(cam["cam_id"]):
+            if cam["cam_id"] in self.cam_config:
                 next_configuration["camera_measurements"].append(cam)
             else:
                 rospy.logdebug("Not capturing measurement for camera: %s"%(cam["cam_id"]))
@@ -191,18 +191,18 @@ class CaptureExecutive:
                 disable_list.append(laser_id)
                 laser_manager.disable()
 
-        print "Enabling:"
+        print("Enabling:")
         for cur_enabled in enable_list:
-            print " + %s" % cur_enabled
-        print "Disabling:"
+            print((" + %s" % cur_enabled))
+        print("Disabling:")
         for cur_disabled in disable_list:
-            print " - %s" % cur_disabled
+            print((" - %s" % cur_disabled))
 
         self.lock.acquire()
         self.active = True
         self.lock.release()
 
-        print "\nCollecting sensor data.."
+        print("\nCollecting sensor data..")
         # Keep waiting until the request_callback function populates the m_robot msg
         while (not rospy.is_shutdown()) and (not done) and (rospy.Time().now() < timeout_time):
             time.sleep(.1)
@@ -211,7 +211,7 @@ class CaptureExecutive:
                 done = True
             self.lock.release()
 
-        print "Stopping sensor streams..\n"
+        print("Stopping sensor streams..\n")
         # Stop listening to all the sensor streams
         for cam_id, cam_manager in self.cam_managers:
             cam_manager.disable()
@@ -243,7 +243,7 @@ class CaptureExecutive:
 
             # if we didn't get any samples from some sensors, complain
             if len(bad_sensors) > 0:
-               print "Didn't get good data from %s"%(', '.join(bad_sensors))
+               print(("Didn't get good data from %s"%(', '.join(bad_sensors))))
             else:
                # if we got data from all of our sensors, complain about the
                # ones that were below the mean (heuristic)
@@ -251,9 +251,9 @@ class CaptureExecutive:
                for i in range(l):
                   if self.interval_status.yeild_rates[i] <= avg:
                      bad_sensors.append(self.interval_status.names[i])
-               print "%s may be performing poorly"%(", ".join(bad_sensors))
+               print(("%s may be performing poorly"%(", ".join(bad_sensors))))
         elif self.message is not None:
-            print self.message
+            print((self.message))
 
         self.lock.acquire()
         self.active = False
@@ -270,7 +270,7 @@ class CaptureExecutive:
         if self.active:
             # Do some query into the cache, and possibly stop stuff from running
             m = self.cache.request_robot_measurement(msg.start, msg.end)
-            if isinstance(m, basestring):
+            if isinstance(m, str):
                self.message = m
             else:
                self.m_robot = m
@@ -355,42 +355,42 @@ if __name__=='__main__':
             cur_config = yaml.safe_load(open(full_paths[0]))
             m_robot = executive.capture(cur_config, rospy.Duration(0.01))
             while not rospy.is_shutdown() and keep_collecting:
-                print
-                print sample_options[step]["prompt"]
-                print "Press <enter> to continue, type N to exit this step"
-                resp = raw_input(">>>")
+                print()
+                print((sample_options[step]["prompt"]))
+                print("Press <enter> to continue, type N to exit this step")
+                resp = eval(input(">>>"))
                 if string.upper(resp) == "N":
-                    print sample_options[step]["finish"]
+                    print((sample_options[step]["finish"]))
                     keep_collecting = False
                 else:
                     for cur_sample_path in full_paths:
-                        print "On %s sample [%s]" % (sample_options[step]["group"], cur_sample_path)
+                        print(("On %s sample [%s]" % (sample_options[step]["group"], cur_sample_path)))
                         cur_config = yaml.safe_load(open(cur_sample_path))
                         m_robot = executive.capture(cur_config, rospy.Duration(40))
                         if m_robot is None:
-                            print "--------------- Failed To Capture a %s Sample -----------------" % sample_options[step]["group"]
+                            print(("--------------- Failed To Capture a %s Sample -----------------" % sample_options[step]["group"]))
                             if not sample_options[step]["repeat"]:
                                 sample_failure[step] += 1
                         else:
-                            print "++++++++++++++ Successfully Captured a %s Sample ++++++++++++++" % sample_options[step]["group"]
+                            print(("++++++++++++++ Successfully Captured a %s Sample ++++++++++++++" % sample_options[step]["group"]))
                             sample_success[step] += 1
                             pub.publish(m_robot)
-                        print "Succeeded on %u %s samples" % (sample_success[step], sample_options[step]["group"])
+                        print(("Succeeded on %u %s samples" % (sample_success[step], sample_options[step]["group"])))
                         if rospy.is_shutdown():
                             break
                     keep_collecting = sample_options[step]["repeat"]
     except EOFError:
-        print "Exiting"    
+        print("Exiting")    
 
     time.sleep(1)
 
-    print "Calibration data collection has completed!"
+    print("Calibration data collection has completed!")
     for step in sample_steps:
         if sample_options[step]["repeat"]:
-            print "%s Samples: %u" % (sample_options[step]["group"], sample_success[step])
+            print(("%s Samples: %u" % (sample_options[step]["group"], sample_success[step])))
         else:
-            print "%s Samples: %u/%u" % (sample_options[step]["group"], sample_success[step], sample_success[step] + sample_failure[step])
-    print ""
-    print "You can now kill this node, along with any other calibration nodes that are running."
+            print(("%s Samples: %u/%u" % (sample_options[step]["group"], sample_success[step], sample_success[step] + sample_failure[step])))
+    print("")
+    print("You can now kill this node, along with any other calibration nodes that are running.")
 
 

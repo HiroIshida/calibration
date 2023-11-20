@@ -103,8 +103,8 @@ class RobotMeasurementCache:
             return None
 
         # Extract the cam measurements closest to the center of the interval
-        cam_measurements = dict( [ (x, None) for x in self._cam_caches.keys() ] )
-        for cam_id in self._cam_caches.keys():
+        cam_measurements = dict( [ (x, None) for x in list(self._cam_caches.keys()) ] )
+        for cam_id in list(self._cam_caches.keys()):
             # Get the index elem that is [approx] closest to the center of the interval
             cur_cache = self._cam_caches[cam_id]
             right_center_index = bisect( [x.header.stamp for x in cur_cache], req_center )
@@ -119,8 +119,8 @@ class RobotMeasurementCache:
                 cam_measurements[cam_id] = cur_cache[right_center_index]
 
         # Extract the chain measurements closest to the center of the interval
-        chain_measurements = dict( [ (x, None) for x in self._chain_caches.keys() ] )
-        for chain_id in self._chain_caches.keys():
+        chain_measurements = dict( [ (x, None) for x in list(self._chain_caches.keys()) ] )
+        for chain_id in list(self._chain_caches.keys()):
             # Get the index elem that is [approx] closest to the center of the interval
             cur_cache = self._chain_caches[chain_id]
             right_center_index = bisect( [x.header.stamp for x in cur_cache], req_center )
@@ -135,8 +135,8 @@ class RobotMeasurementCache:
                 chain_measurements[chain_id] = cur_cache[right_center_index]
 
         # Use a slightly different strategy for the laser. Get all of them, and then choose the first one
-        laser_measurements = dict( [ (x, None) for x in self._laser_caches.keys() ] )
-        for laser_id in self._laser_caches.keys():
+        laser_measurements = dict( [ (x, None) for x in list(self._laser_caches.keys()) ] )
+        for laser_id in list(self._laser_caches.keys()):
             cur_cache = self._laser_caches[laser_id]
             sub_list = [x for x in cur_cache if x[2] <= interval_end and x[1] >= interval_start]
             if len(sub_list) > 0:
@@ -148,19 +148,19 @@ class RobotMeasurementCache:
         good_sensors = []
 
         # See if we got everything that we needed
-        for cam_id, m in cam_measurements.items():
+        for cam_id, m in list(cam_measurements.items()):
             if m is None:
                 failed_sensors.append(cam_id)
             else:
                 good_sensors.append(cam_id)
 
-        for chain_id, m in chain_measurements.items():
+        for chain_id, m in list(chain_measurements.items()):
             if m is None:
                 failed_sensors.append(chain_id)
             else:
                 good_sensors.append(chain_id)
 
-        for laser_id, m in laser_measurements.items():
+        for laser_id, m in list(laser_measurements.items()):
             if m is None:
                 failed_sensors.append(laser_id)
             else:
@@ -174,13 +174,13 @@ class RobotMeasurementCache:
            return m
 
         # TODO: eliminate print statement or convert to rospy.log*
-        print "Received everything!"
+        print("Received everything!")
 
         # Push everything into a RobotMeasurement message
         m_robot = RobotMeasurement()
-        m_robot.M_cam   = cam_measurements.values()
-        m_robot.M_chain = chain_measurements.values()
-        m_robot.M_laser = laser_measurements.values()
+        m_robot.M_cam   = list(cam_measurements.values())
+        m_robot.M_chain = list(chain_measurements.values())
+        m_robot.M_laser = list(laser_measurements.values())
 
         return m_robot
 
